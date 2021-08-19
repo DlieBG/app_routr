@@ -1,0 +1,32 @@
+services:
+  - name: prod
+    host: 10.16.2.3
+    sockets:
+      - port: 8414
+        app: test
+
+  - name: dev
+    host: 10.16.2.3
+    dev: subdomain
+    sockets:
+      - port: 8415
+        app: test
+
+apps:
+  - name: test
+    routes:
+      - path: /test
+        endpoint: https://google.de
+      - path: /bene
+        endpoint: http://18.197.92.184
+
+  - name: test-dev
+    routes:
+      - path: /asd
+        endpoint: http://localhost:3003/
+      - path: /testttt
+        endpoint: https://google.de
+      - path: /status
+        endpoint: http://10.16.1.11:83/api/mining/status
+      - path: /
+        endpoint: http://10.16.1.11:83
