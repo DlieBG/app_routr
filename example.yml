@@ -1,16 +1,18 @@
 services:
   - name: prod
-    host: 10.16.2.3
-    sockets:
-      - port: 8414
-        app: test
+    description: Test
+    # host: 10.16.2.3
+    hosts: ['localhost', '10.16.2.3']
+    port: 8414
+    app: test
 
   - name: dev
-    host: 10.16.2.3
-    dev: subdomain
-    sockets:
-      - port: 8415
-        app: test
+    description: Test
+    # host: localhost
+    hosts: ['localhost', '10.16.2.3']
+    dev_port: 8844
+    port: 8415
+    app: test-dev
 
 apps:
   - name: test
@@ -22,7 +24,9 @@ apps:
 
   - name: test-dev
     routes:
-      - path: /asd
+      - name: test
+        description: test2
+        path: /asd
         endpoint: http://localhost:3003/
       - path: /testttt
         endpoint: https://google.de

@@ -1,0 +1,29 @@
+.card {
+    width: fit-content;
+    min-width: 300px;
+    min-height: 185px;
+    margin: .75em;
+    padding-bottom: .25em;
+}
+
+h2 {
+    font-weight: 450;
+    font-size: large;
+    margin-bottom: 1em;
+}
+
+.radio-button {
+    display: block;
+    margin-bottom: .75em;
+}
+
+i {
+    border-radius: 10px;
+    background-color: rgba(64, 122, 255, 0.85);
+    padding: .35em .55em .35em .45em;
+    margin-left: .25em;
+}
+
+.form {
+    width: 100%;
+}

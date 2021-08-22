@@ -1,0 +1,3 @@
+<div class="body" *ngIf="service">
+    <app-service *ngFor="let route of service.Routes; let i = index" [route]="route" [i]="i"></app-service>
+</div>

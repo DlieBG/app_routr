@@ -1,0 +1,7 @@
+<mat-card class="card" *ngIf="service">
+    <mat-card-title>{{ service.Name }}</mat-card-title>
+    <mat-card-content>
+        {{ service.Description }}<br><br>
+        <a [href]="'http://'+service.Host+':'+service.Port" target="_blank">http://{{ service.Host }}:{{ service.Port }}</a>
+    </mat-card-content>
+</mat-card>
