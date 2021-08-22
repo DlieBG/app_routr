@@ -2,8 +2,12 @@
 
 ## run 
 
-> ./routr example.yml
+```
+./routr example.yml
+```
 
 ## build go mods
 
-> go mod tidy
+```
+go mod tidy
+```
