@@ -9,7 +9,7 @@ services:
   - name: dev
     description: Test
     # host: localhost
-    hosts: ['localhost', '10.16.2.3']
+    hosts: ['localhost', '10.16.2.3', '0.0.0.0']
     dev_port: 8844
     port: 8415
     app: test-dev

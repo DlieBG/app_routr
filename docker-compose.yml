@@ -1,0 +1,11 @@
+version: '3'
+services:
+  routr:
+    build: .
+    restart: unless-stopped
+    ports:
+      - 8844:8844
+      - 8415:8415
+      - 8414:8414
+    volumes: 
+      - ./config.yml:/app/config.yml
