@@ -2,31 +2,70 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
-type DevServer struct {
-	DevService *DevService
+func (devPort DevPort) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	for _, devService := range devPort {
+
+		if devService.Host == strings.Split(req.Host, ":")[0] {
+
+			for _, route := range devService.Routes {
+
+				if strings.HasPrefix(req.URL.Path, route.Path) {
+					req.URL.Path = strings.TrimPrefix(req.URL.Path, route.Path)
+					if !strings.HasPrefix(req.URL.Path, "/") {
+						req.URL.Path = "/" + req.URL.Path
+					}
+
+					url, _ := url.Parse(route.Endpoint)
+
+					proxy := httputil.NewSingleHostReverseProxy(url)
+					proxy.ServeHTTP(res, req)
+
+					return
+				}
+			}
+
+			fmt.Println("404 - Keine Route gedunden")
+			res.WriteHeader(404)
+			res.Write([]byte("404 - Keine Route gefunden"))
+			return
+		}
+	}
+
+	fmt.Println("404 - Keinen Host gefunden")
+	res.WriteHeader(404)
+	res.Write([]byte("404 - Keinen Host gefunden"))
 }
 
-type RequestBody struct {
-	Route    int
-	Endpoint string
-}
-
-func (devServer DevServer) ServeHTTP(res http.ResponseWriter, req *http.Request) {
-	if strings.HasPrefix(req.URL.Path, "/api") {
-		devServer.ServeAPI(res, req)
-	} else {
-		http.FileServer(http.Dir("./frontend/dist/frontend")).ServeHTTP(res, req)
+func (devServerPort DevServerPort) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+	for _, devService := range devServerPort {
+		if devService.Host == strings.Split(req.Host, ":")[0] {
+			if strings.HasPrefix(req.URL.Path, "/api") {
+				devService.ServeAPI(res, req)
+			} else {
+				if _, err := os.Stat("./frontend/dist/frontend"); !os.IsNotExist(err) {
+					http.FileServer(http.Dir("./frontend/dist/frontend")).ServeHTTP(res, req)
+				}
+				if _, err := os.Stat("../frontend/dist/frontend"); !os.IsNotExist(err) {
+					http.FileServer(http.Dir("../frontend/dist/frontend")).ServeHTTP(res, req)
+				}
+			}
+		}
 	}
 }
 
-func (devServer DevServer) ServeAPI(res http.ResponseWriter, req *http.Request) {
+func (devService DevService) ServeAPI(res http.ResponseWriter, req *http.Request) {
 	if req.Method == "GET" {
-		serviceJson, _ := json.Marshal(devServer.DevService)
+		serviceJson, _ := json.Marshal(devService)
 
 		res.Header().Add("Content-Type", "application/json")
 		res.Header().Set("Access-Control-Allow-Origin", "*")
@@ -37,13 +76,13 @@ func (devServer DevServer) ServeAPI(res http.ResponseWriter, req *http.Request) 
 		var body RequestBody
 		json.NewDecoder(req.Body).Decode(&body)
 
-		if !includes(devServer.DevService.Routes[body.Route].RecentEndpoints, body.Endpoint) {
-			devServer.DevService.Routes[body.Route].RecentEndpoints = append(devServer.DevService.Routes[body.Route].RecentEndpoints, body.Endpoint)
+		if !includes(devService.Routes[body.Route].RecentEndpoints, body.Endpoint) {
+			devService.Routes[body.Route].RecentEndpoints = append(devService.Routes[body.Route].RecentEndpoints, body.Endpoint)
 		}
 
-		devServer.DevService.Routes[body.Route].Endpoint = body.Endpoint
+		devService.Routes[body.Route].Endpoint = body.Endpoint
 
-		serviceJson, _ := json.Marshal(devServer.DevService.Routes[body.Route])
+		serviceJson, _ := json.Marshal(devService.Routes[body.Route])
 
 		res.Header().Add("Content-Type", "application/json")
 		res.Header().Set("Access-Control-Allow-Origin", "*")
@@ -67,8 +106,26 @@ func includes(arr []string, str string) bool {
 	return false
 }
 
-func registerDev(devService *DevService) {
-	go func(devServer DevServer) {
-		http.ListenAndServe(devServer.DevService.Host+":"+strconv.FormatInt(int64(devServer.DevService.DevPort), 10), devServer)
-	}(DevServer{devService})
+func scheduleDev(config Config, waiter *sync.WaitGroup) {
+	devCfg, devServerCfg := config.toDevCfgAndDevServerCfg()
+
+	fmt.Println("Listening Dev:")
+
+	for port, devPort := range devCfg {
+		fmt.Println(port, devPort)
+		waiter.Add(1)
+		go func(port int, devPort DevPort) {
+			http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), devPort)
+		}(port, devPort)
+	}
+
+	for port, devServerPort := range devServerCfg {
+		fmt.Println(port, devServerPort)
+		waiter.Add(1)
+		go func(port int, devServerPort DevServerPort) {
+			http.ListenAndServe(":"+strconv.FormatInt(int64(port), 10), devServerPort)
+		}(port, devServerPort)
+	}
+
+	fmt.Println()
 }

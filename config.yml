@@ -9,7 +9,7 @@ services:
   - name: dev
     description: Test
     # host: localhost
-    hosts: ['localhost', '10.16.2.3', '0.0.0.0']
+    hosts: ['localhost', '10.16.2.3']
     dev_port: 8844
     port: 8415
     app: test-dev
@@ -30,7 +30,6 @@ apps:
         endpoint: http://localhost:3003/
       - path: /testttt
         endpoint: https://google.de
-      - path: /status
-        endpoint: http://10.16.1.11:83/api/mining/status
-      - path: /
+      - name: Standard Testroute
+        path: /
         endpoint: http://10.16.1.11:83
