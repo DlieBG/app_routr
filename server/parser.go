@@ -11,53 +11,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type Config struct {
-	Services []struct {
-		Name        string   `yaml:"name"`
-		Description string   `yaml:"description"`
-		Host        string   `yaml:"host"`
-		Hosts       []string `yaml:"hosts"`
-		Port        int      `yaml:"port"`
-		App         string   `yaml:"app"`
-		DevPort     int      `yaml:"dev_port"`
-	} `yaml:"services"`
-
-	Apps []struct {
-		Name   string `yaml:"name"`
-		Routes []struct {
-			Name        string `yaml:"name"`
-			Description string `yaml:"description"`
-			Path        string `yaml:"path"`
-			Endpoint    string `yaml:"endpoint"`
-		} `yaml:"routes"`
-	} `yaml:"apps"`
-}
-
-type FastCfg map[int]FastPort
-type FastPort map[string]FastHost
-type FastHost []FastRoute
-type FastRoute struct {
-	Path     string
-	Endpoint string
-}
-
-type DevCfg []DevService
-type DevService struct {
-	Name        string
-	Description string
-	Host        string
-	Port        int
-	DevPort     int
-	Routes      []DevRoute
-}
-type DevRoute struct {
-	Name            string
-	Description     string
-	Path            string
-	Endpoint        string
-	RecentEndpoints []string
-}
-
 func (config Config) toFastCfg() (fastCfg FastCfg) {
 	fastCfg = FastCfg{}
 
@@ -112,8 +65,9 @@ func (config Config) toFastCfg() (fastCfg FastCfg) {
 	return
 }
 
-func (config Config) toDevCfg() (devCfg DevCfg) {
+func (config Config) toDevCfgAndDevServerCfg() (devCfg DevCfg, devServerCfg DevServerCfg) {
 	devCfg = DevCfg{}
+	devServerCfg = DevServerCfg{}
 
 	for _, service := range config.Services {
 
@@ -161,7 +115,8 @@ func (config Config) toDevCfg() (devCfg DevCfg) {
 						}
 					}
 
-					devCfg = append(devCfg, devService)
+					devCfg[devService.Port] = append(devCfg[devService.Port], &devService)
+					devServerCfg[devService.DevPort] = append(devServerCfg[devService.DevPort], &devService)
 				}
 			}
 		}
