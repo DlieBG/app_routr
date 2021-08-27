@@ -6,7 +6,7 @@
 ```
 
 > Keep in mind to provide the builded frontend files on ./frontend/dist or ../frontend/dist of the executable \
-> The dist folder already contains all files of the latest build
+> The dist folder in this repo already contains all files of the latest build
 
 ## run on docker-compose
 ```
@@ -25,8 +25,8 @@ On the other hand there are apps, which manaage the assignemend of a service to 
 ## services
 ``` yml
 services:
-    - name: sample name
-      description: sample description
+    - name: sample service name
+      description: sample service description
       host: one.host.com
       hosts: ["list", "of", "hosts"]
       port: 8080
@@ -37,8 +37,8 @@ services:
 ## apps
 ``` yml
 apps:
-    - name: sample name
-      description: sample description
+    - name: sample app name
+      description: sample app description
       routes:
         - name: sample route name
           description: sample route description
